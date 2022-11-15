@@ -1,4 +1,19 @@
 # SURV727-Project
+---
+title: "A Sentiment Analysis of Tweets about Abortion Ban in the State of Georgia"
+subtitle: "SURV727 Term Paper"
+author: "Akipu Ekoche and Ellena Sempeles"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: yes
+    df_print: kable
+---
+
+```{r, include = FALSE}
+library(knitr)
+library(tidyverse)
+```
 ## Introduction
 
 This section outlines the research idea. We can also cite related work here [@Wickham2014; @Baumer2017].
@@ -8,6 +23,7 @@ Note that compiled term paper (the PDF) is supposed to be more text-centered tha
 ## Data
 
 This section describes the data sources and the data gathering process.
+
 
 ```{r}
 # A code chunk that exemplifies the data gathering process
