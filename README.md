@@ -2,7 +2,7 @@
 ---
 title: "A Sentiment Analysis of Tweets about Abortion Ban in the State of Georgia"
 subtitle: "SURV727 Term Paper"
-author: "Akipu Ekoche and Ellena Sempeles"
+author: "Akipu Ehoche and Ellena Sempeles"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
