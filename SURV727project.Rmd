@@ -1,6 +1,6 @@
 # SURV727-Project
 ---
-title: "A Sentiment Analysis of Tweets on Georgia's Abortion Ban"
+title: "Sentiment Analysis of Tweets on Georgia Abortion Law"
 subtitle: "SURV727 Term Paper"
 author: "Akipu Ehoche and Ellena Sempeles"
 date: "`r Sys.Date()`"
@@ -8,6 +8,27 @@ output:
   pdf_document:
     toc: yes
     df_print: kable
+ references:
+- id: Blazina2022
+  title: Key facts about the abortion debate in America
+  author:
+  - family: Blazina
+    given: C.
+  container-title: Pew Research
+  type: article-online
+  issued:
+    year: 2022
+- id: BellwareRoubein2022
+  title: Judge overturns Georgia’s six-week abortion ban
+  author:
+  - family: Bellware
+    given: K.
+  - family: Roubein
+    given: R.
+  type: article-online
+  container-title: The Washington Post
+  issued:
+    year: 2022
 ---
 
 ```{r, include = FALSE}
@@ -17,19 +38,17 @@ library(rtweet)
 library(tidytext)
 ```
 ## Introduction
-Trying to write something new.
-Ellena is now trying to write something new.
-Third time is the charm
-One more time.
+In June of 2022, the Supreme Court issued its decision in Dobbs vs. Jackson Women’s Health, overturning Roe vs. Wade, eliminating the federal standard protecting the right to abortion. This sparked a major political and morality debate across the American population, where opinions and comments were shared via various social media platforms, including Twitter. According to a survey of U.S. adults conducted by Pew Research Center in the summer of 2022, a majority of the U.S. public disapproves of the Supreme Court's decision. Roughly 57% of adults dissaprove of the court's decision, including 43% who strongly disapprove, while 41% approve, including 25% who strongly approve [@Blazina2022].The state of Georgia’s abortion law was among of the strictest in the country, banning abortion after the detection of fetal cardiac activity, at roughly six weeks. However, as of November 15th, 2022, a breaking news story reported that a Fulton County judge overturned Georgia’s six-week abortion ban [@BellwareRoubein2022]. Given the country's divide on the issue of abortion and the back and forth of Georgia's legislation, we are interested in the reaction of Twitter users' tweets on this change of legislation, as well as, the mapping of this topic of conversation across the country. Our questions include:
+1) What are people saying about the change in Georgia’s abortion law? 
+2) Are their reactions positive or negative?
+3) Where in the country are people talking about this? 
 
-#Still checking this out
-
-#ES is trying to add to this file!!uuuuuugh
-This section outlines the research idea. We can also cite related work here [@Wickham2014; @Baumer2017].
-
-Note that compiled term paper (the PDF) is supposed to be more text-centered than the RMarkdown documents we used in class, i.e. the text sections are more detailed and big or redundant code chunks can be hidden.
+This paper provides a sentiment analysis of Twitter users' tweets on the topic of abortion in the state of Georgia.
 
 ## Data
+Two corpuses of tweets were collected to examine the sentiment of Twitter users regarding the Georgia abortion ban. Using the Twitter API, a total of xxx tweets were collected after a few days of listening. The first corpus was collected for a span of 12 hours starting at 10:00pm EST on November 15, 2022. Given that the abortion ban was overturning on that specific day, this corpus of tweets represented Twitter users' inital reaction to the the overturning. The second corpus was collected for a span of xx hours starting at xx:xx EST on November xx, 2022. This corpus of tweets will represent Twitter users reactions after a couple of days of the news release. 
+
+
 #checking for error
 This section describes the data sources and the data gathering process.
 
@@ -45,6 +64,7 @@ ban_tweets <- stream_tweets(
 
 
 ```
+The corpuses were then cleaned for later text analysis. This cleaning process included...
 
 ```{r, include = FALSE}
 # Additional code chunks that repeat tasks or do basic things can be hidden
