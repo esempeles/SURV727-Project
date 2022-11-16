@@ -30,7 +30,7 @@ This section outlines the research idea. We can also cite related work here [@Wi
 Note that compiled term paper (the PDF) is supposed to be more text-centered than the RMarkdown documents we used in class, i.e. the text sections are more detailed and big or redundant code chunks can be hidden.
 
 ## Data
-
+#checking for error
 This section describes the data sources and the data gathering process.
 
 
