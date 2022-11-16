@@ -19,7 +19,7 @@ library(rtweets)
 Trying to write something new.
 Ellena is now trying to write something new.
 Third time is the charm
-One more time
+One more time.
 This section outlines the research idea. We can also cite related work here [@Wickham2014; @Baumer2017].
 
 Note that compiled term paper (the PDF) is supposed to be more text-centered than the RMarkdown documents we used in class, i.e. the text sections are more detailed and big or redundant code chunks can be hidden.
