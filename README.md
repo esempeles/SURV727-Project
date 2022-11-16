@@ -1,6 +1,6 @@
 # SURV727-Project
 ---
-title: "A Sentiment Analysis of Tweets about Abortion Ban in the State of Georgia"
+title: "A Sentiment Analysis of Tweets on Georgia's Abortion Ban"
 subtitle: "SURV727 Term Paper"
 author: "Akipu Ehoche and Ellena Sempeles"
 date: "`r Sys.Date()`"
