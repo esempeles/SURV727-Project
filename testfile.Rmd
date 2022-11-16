@@ -13,7 +13,8 @@ output:
 ```{r, include = FALSE}
 library(knitr)
 library(tidyverse)
-library(rtweets)
+library(rtweet)
+library(tidytext)
 ```
 ## Introduction
 Trying to write something new.
@@ -35,6 +36,38 @@ This section describes the data sources and the data gathering process.
 
 ```{r}
 # A code chunk that exemplifies the data gathering process
+stream_tweets(
+  q = "georgia ban abortion",
+  timeout = 30,
+  file_name = "keywords.json",
+  parse = FALSE
+)
+
+keywords <- parse_stream("keywords.json")
+
+keywords$text <- gsub("http.*", "", keywords$text)
+keywords$text <- gsub("https.*", "", keywords$text)
+keywords$text <- gsub("&amp;", "&", keywords$text)
+
+keywords_clean <- keywords %>%
+  select(text) %>%
+  unnest_tokens(word, text)
+
+nrow(keywords_clean)
+
+stopwds <- get_stopwords("en")
+keywords_cleaner <- keywords_clean %>%
+  anti_join(stopwds)
+
+nrow(keywords_cleaner)
+
+keywords_cleaner %>%
+  count(word, sort = TRUE) %>%
+  top_n(15) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot() +
+  geom_col(aes(x = word, y = n)) +
+  coord_flip()
 ```
 
 ```{r, include = FALSE}
