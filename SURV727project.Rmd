@@ -86,6 +86,9 @@ keywords_cleaner <- keywords_clean %>%
 
 nrow(keywords_cleaner)
 
+#This is different code to remove stop words (from Twitter API):
+bagVaccines = all_tweets$text %>% iconv("latin1", "ASCII", sub="") %>% scrubber() %sw% qdapDictionaries::Top200Words
+
 keywords_cleaner %>%
   count(word, sort = TRUE) %>%
   top_n(15) %>%
@@ -95,6 +98,49 @@ keywords_cleaner %>%
   coord_flip()
 ```
 
+```{r}
+# Mapping Tweets
+library(maps)
+## create lat/lng variables using all available tweet and profile geo-location data
+us = lat_lng(keywords)
+## plot state boundaries
+par(mar = c(0, 0, 0, 0))
+maps::map("state", lwd = .25)
+## plot lat and lng points onto state map
+points(us$lng, us$lat, pch = 20, cex = .75, col = rgb(0, .3, .7, .75))
+```
+```{r}
+# Filtering irrelevant tweets?
+
+```
+
+```{r}
+#Sentiment Calculation
+install.packages('SentimentAnalysis')
+library(SentimentAnalysis)
+
+sentiments = analyzeSentiment(iconv(as.character(ban_tweets$text), to='UTF-8'))
+head(sentiments)
+
+#Lexicoder
+tokenized=quanteda::tokens_lookup(quanteda::tokens(ban_tweets$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
+sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
+sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
+sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
+
+#Vader
+install.packages('vader')
+library(vader)
+vader_scores = vader_df(ban_tweets$text)
+sentiments$Vader = vader_scores$compound
+
+#Compare dictionaries
+#install.packages('GGally')
+library(GGally)
+with(sentiments, ggpairs(data.frame(SentimentGI, SentimentHE, SentimentLM, 
+                                    SentimentQDAP, LC, Vader)))
+
+```
 ## Results
 
 This section presents the main results.
