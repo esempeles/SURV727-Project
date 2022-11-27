@@ -38,8 +38,26 @@ This section describes the data sources and the data gathering process.
 # A code chunk that exemplifies the data gathering process
 ban_tweets <- stream_tweets(
   q = "georgia ban abortion",
-  timeout = 86400,
+  timeout = 15600,
   file_name = "tweet1",
+  parse = FALSE
+)
+ban_tweets <- stream_tweets(
+  q = "georgia ban abortion",
+  timeout = 15600,
+  file_name = "tweet2",
+  parse = FALSE
+)
+ban_tweets <- stream_tweets(
+  q = "georgia ban abortion",
+  timeout = 15600,
+  file_name = "tweet3",
+  parse = FALSE
+)
+ban_tweets <- stream_tweets(
+  q = "georgia ban abortion",
+  timeout = 15600,
+  file_name = "tweet4",
   parse = FALSE
 )
 
