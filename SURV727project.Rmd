@@ -45,6 +45,7 @@ library(knitr)
 library(tidyverse)
 library(rtweet)
 library(tidytext)
+library(qdap)
 ```
 ## Introduction
 In June of 2022, the Supreme Court issued its decision in Dobbs vs. Jackson Women’s Health, overturning Roe vs. Wade, eliminating the federal standard protecting the right to abortion. This sparked a major political and morality debate across the American population, where opinions and comments were shared via various social media platforms, including Twitter. According to a survey of U.S. adults conducted by Pew Research Center in the summer of 2022, a majority of the U.S. public disapproves of the Supreme Court's decision. Roughly 57% of adults dissaprove of the court's decision, including 43% who strongly disapprove, while 41% approve, including 25% who strongly approve [@Blazina2022].The state of Georgia’s abortion law was among of the strictest in the country, banning abortion after the detection of fetal cardiac activity, at roughly six weeks. However, as of November 15th, 2022, a breaking news story reported that a Fulton County judge overturned Georgia’s six-week abortion ban [@BellwareRoubein2022]. Then, as of November 23rd, 2022, the state attorney general's office appealed the ruling to the state Supreme Court, allowing the six-week abortion ban to take effect once again [@Thanawala2022]. Given the country's divide on the issue of abortion and the back and forth of Georgia's legislation, we are interested in the emotional reactions of Twitter users' tweets on these changes of legislation, as well as, the mapping of this topic of conversation across the country. Our questions include:
@@ -55,10 +56,10 @@ In June of 2022, the Supreme Court issued its decision in Dobbs vs. Jackson Wome
 This paper provides a sentiment analysis of Twitter users' tweets on the topic of abortion in the state of Georgia.
 
 ## Data
-Two corpuses of tweets were collected to examine the sentiment of Twitter users regarding the Georgia abortion ban. Using the Twitter API, a total of xxx tweets were collected over two periods of time, after the abortion ban was overturned and after it was reinstated. The first corpus was collected for a span of 12 hours starting at 10:00PM EST on November 15, 2022. Given that the abortion ban was overturning on that specific day, this corpus of tweets captured Twitter users' inital reaction to the the overturning. The second corpus was collected for a span of 12 hours starting at 5:00PM EST on November 23, 2022. This corpus of tweets captured Twitter users reactions after the news of the ban reinstatement. 
+Two corpuses of tweets were collected to examine the sentiment of Twitter users regarding the Georgia abortion ban. Using the Twitter API, a total of xxx tweets were collected over two periods of time, after the abortion ban was overturned and after it was reinstated. The first corpus was collected for a span of 12 hours starting at 10:00PM EST on November 15, 2022. Given that the abortion ban was overturning on that specific day, this corpus of tweets captured Twitter users' inital reaction to the the overturning. The second corpus was collected for a span of 12 hours starting at 5:00PM EST on November 23, 2022. This corpus of tweets captured Twitter users reactions after the news of the ban reinstatement. This second batch of tweets were collected in three installments.
 
 
-```{r, include = FALSE}
+```{r, eval=FALSE }
 # A code chunk that exemplifies the data gathering process
 ban_tweets <- stream_tweets(
   q = "georgia ban abortion",
@@ -68,13 +69,13 @@ ban_tweets <- stream_tweets(
 )
 ban_tweets <- stream_tweets(
   q = "georgia ban abortion",
-  timeout = 15600,
+  timeout = 1800,
   file_name = "tweet2",
   parse = FALSE
 )
 ban_tweets <- stream_tweets(
   q = "georgia ban abortion",
-  timeout = 15600,
+  timeout = 43200,
   file_name = "tweet3",
   parse = FALSE
 )
@@ -94,14 +95,22 @@ ban_tweets2 <- stream_tweets(
 ) 
 
 ```
+
+
+
+How much tweets were collected?
+```{r }
+keywords <- parse_stream("tweet1")
+keywords1 <- keywords
+ts_plot(keywords, by = "secs")
+```
+
 The corpuses were then cleaned for later text analysis. This cleaning procedures included
 -removing stopwords
 -removing website tags?
 -are we doing stemming and lemmatization?
 
-```{r, include = FALSE}
-keywords <- parse_stream("keywords.json")
-
+```{r, include=TRUE}
 keywords$text <- gsub("http.*", "", keywords$text)
 keywords$text <- gsub("https.*", "", keywords$text)
 keywords$text <- gsub("&amp;", "&", keywords$text)
@@ -118,18 +127,61 @@ keywords_cleaner <- keywords_clean %>%
 
 nrow(keywords_cleaner)
 
-#This is different code to remove stop words (from Twitter API):
-bagVaccines = all_tweets$text %>% iconv("latin1", "ASCII", sub="") %>% scrubber() %sw% qdapDictionaries::Top200Words
 
-keywords_cleaner %>%
+plot1 <- keywords_cleaner %>%
+  count(word, sort = TRUE) %>%
+  top_n(15) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot() +
+  geom_col(aes(x = word, y = n)) +
+  coord_flip() 
+plot1
+#This is different code to remove stop words (from Twitter API): so far it is leaving entire sentences, need another look
+#bagVaccines = keywords1$text %>% iconv("latin1", "ASCII", sub="") %>% scrubber() %sw% qdapDictionaries::Top200Words
+#nrow(bagVaccines)
+#df <- as.data.frame(bagVaccines)
+#nrow(df$bagVaccines)
+#df %>%
+  #count(bagVaccines, sort = TRUE) %>%
+  #top_n(15) %>%
+  #mutate(word = reorder(bagVaccines, n)) %>%
+  #ggplot() +
+  #geom_col(aes(x = bagVaccines, y = n)) +
+  #coord_flip() -> Method2
+#Method2
+
+```
+
+Using stemming to clean up the data, we get
+```{r, include=TRUE}
+library(quanteda)
+library(lexicon)
+
+keywords_clean1 <- as.data.frame(keywords_clean)
+toks <-  corpus(keywords_clean1$word) %>%
+  tokens(remove_punct = TRUE, remove_numbers = FALSE, remove_symbols = TRUE) %>% 
+  tokens_wordstem()
+
+toks1 <- data.frame(text = sapply(toks, as.character), stringsAsFactors = FALSE)
+plot2 <- toks1 %>%  mutate(word=text) %>%
+  anti_join(stopwds) %>%
   count(word, sort = TRUE) %>%
   top_n(15) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot() +
   geom_col(aes(x = word, y = n)) +
   coord_flip()
+plot2
 ```
 
+Comparing the two plots using the different cleaning methods side by side
+```{r, include=TRUE}
+require(patchwork)
+library(patchwork)
+plot1 + plot2
+```
+
+Plot 1 represents cleaning up the data as described above while plot2 has formatted the words after the cleaning using stemming.
 ```{r}
 # Mapping Tweets
 library(maps)
@@ -141,6 +193,10 @@ maps::map("state", lwd = .25)
 ## plot lat and lng points onto state map
 points(us$lng, us$lat, pch = 20, cex = .75, col = rgb(0, .3, .7, .75))
 ```
+Most of the location data is missing, so the map is sparsely populated
+
+
+
 ```{r}
 # Filtering irrelevant tweets?
 
@@ -151,11 +207,12 @@ points(us$lng, us$lat, pch = 20, cex = .75, col = rgb(0, .3, .7, .75))
 install.packages('SentimentAnalysis')
 library(SentimentAnalysis)
 
-sentiments = analyzeSentiment(iconv(as.character(ban_tweets$text), to='UTF-8'))
+sentiments = analyzeSentiment(iconv(as.character(keywords$text), to='UTF-8'))
 head(sentiments)
 
 #Lexicoder
-tokenized=quanteda::tokens_lookup(quanteda::tokens(ban_tweets$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
+library(quanteda)
+tokenized=quanteda::tokens_lookup(quanteda::tokens(keywords$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
 sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
 sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
 sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
@@ -163,7 +220,7 @@ sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
 #Vader
 install.packages('vader')
 library(vader)
-vader_scores = vader_df(ban_tweets$text)
+vader_scores = vader_df(keywords$text)
 sentiments$Vader = vader_scores$compound
 
 #Compare dictionaries
@@ -171,6 +228,15 @@ sentiments$Vader = vader_scores$compound
 library(GGally)
 with(sentiments, ggpairs(data.frame(SentimentGI, SentimentHE, SentimentLM, 
                                     SentimentQDAP, LC, Vader)))
+
+```
+
+The second installment will be merged into one json file
+```{r, include = FALSE}
+keywords2 <- parse_stream("tweet2")
+keywords3 <- parse_stream("tweet3")
+keywords4 <- parse_stream("tweet4")
+tweet_2 <- rbind(keywords2,keywords3,keywords4)
 
 ```
 ## Results
