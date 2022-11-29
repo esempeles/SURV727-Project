@@ -297,7 +297,7 @@ Comparing all four top 15 words
 ```{r, include=TRUE}
  plot3 +plot4
 ```
-Checking 
+ 
 ## Results
 
 This section presents the main results.
