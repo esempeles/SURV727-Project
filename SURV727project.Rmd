@@ -265,7 +265,7 @@ nrow(keywords_cleaner)
 
 plot3 <- keywords_cleaner %>%
   count(word, sort = TRUE) %>%
-  top_n(15) %>%
+  top_n(30) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot() +
   geom_col(aes(x = word, y = n)) +
@@ -286,7 +286,7 @@ toks1 <- data.frame(text = sapply(toks, as.character), stringsAsFactors = FALSE)
 plot4 <- toks1 %>%  mutate(word=text) %>%
   anti_join(stopwds) %>%
   count(word, sort = TRUE) %>%
-  top_n(15) %>%
+  top_n(30) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot() +
   geom_col(aes(x = word, y = n)) +
@@ -295,9 +295,9 @@ plot4
 ```
 Comparing all four top 15 words
 ```{r, include=TRUE}
-plot1 + plot2 + plot3 +plot4
+ plot3 +plot4
 ```
-
+Checking 
 ## Results
 
 This section presents the main results.
