@@ -208,7 +208,7 @@ Most of the location data is missing, so the map is sparsely populated
 
 ```
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, mess}
 #Sentiment Calculation
 library(SentimentAnalysis)
 
