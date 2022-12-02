@@ -53,6 +53,7 @@ library(rtweet)
 library(tidytext)
 library(qdap)
 library(lubridate)
+library(tm)
 ```
 ## Introduction
 In June of 2022, the Supreme Court issued its decision in Dobbs vs. Jackson Women’s Health, overturning Roe vs. Wade, eliminating the federal standard protecting the right to abortion. This sparked a major political and morality debate across the American population, where opinions and comments were shared via various social media platforms, including Twitter. According to a survey of U.S. adults conducted by Pew Research Center in the summer of 2022, a majority of the U.S. public disapproves of the Supreme Court's decision. Roughly 57% of adults disapprove of the court's decision, including 43% who strongly disapprove, while 41% approve, including 25% who strongly approve [@Blazina2022].The state of Georgia’s abortion law was among of the strictest in the country, banning abortion after the detection of fetal cardiac activity, at roughly six weeks. However, as of November 15th, 2022, a breaking news story reported that a Fulton County judge overturned Georgia’s six-week abortion ban [@BellwareRoubein2022]. Then, as of November 23rd, 2022, the state attorney general's office appealed the ruling to the state Supreme Court, allowing the six-week abortion ban to take effect once again [@Thanawala2022]. Given the country's divide on the issue of abortion and the back and forth of Georgia's legislation, we are interested in the emotional reactions of Twitter users' tweets on these changes of legislation. Our questions include:
@@ -137,6 +138,231 @@ The first corpus of tweets were collected between 2pm and 3am on 23rd-24th Novem
 
 Next we did some initial cleaning. This includes removing websites, changing punctuation tags to just punctuation,unnecessary words and stopwords. 
 We did this for both of the corpuses.
+
+```{r, include=FALSE}
+###INITIAL CLEANING###
+##Initial Cleaning the Abortion Ban Overturned corpus:
+ovt_corpus <- iconv(ovt_tweets$text)
+ovt_corpus <- Corpus(VectorSource(ovt_corpus))
+inspect(ovt_corpus[1:5])
+
+#Covert words to lower case, remove punctuation/numbers/stopwords/websites/extra spaces:
+ovt_corpus <- tm_map(ovt_corpus, tolower)
+ovt_corpus <- tm_map(ovt_corpus, removeWords, c('rt @'))
+ovt_corpus <- tm_map(ovt_corpus, removePunctuation)
+ovt_corpus <- tm_map(ovt_corpus, removeNumbers)
+ovt_cleanset <- tm_map(ovt_corpus, removeWords, stopwords('english'))
+removeURL <- function(x) gsub('http[[:alnum:]]*', '', x)
+ovt_cleanset <- tm_map(ovt_cleanset, content_transformer(removeURL))
+inspect(ovt_cleanset[1:5])
+
+ovt_cleanset_df <- data.frame(ovt_cleanset)
+
+##Initial Cleaning the Abortion Ban Reinstated corpus:
+reinst_corpus <- iconv(reinst_tweets$text)
+reinst_corpus <- Corpus(VectorSource(reinst_corpus))
+inspect(reinst_corpus[1:5])
+
+#Covert words to lower case, remove punctuation/numbers/stopwords/websites/extra spaces:
+reinst_corpus <- tm_map(reinst_corpus, tolower)
+reinst_corpus <- tm_map(reinst_corpus, removeWords, c('rt @'))
+reinst_corpus <- tm_map(reinst_corpus, removePunctuation)
+reinst_corpus <- tm_map(reinst_corpus, removeNumbers)
+reinst_cleanset <- tm_map(reinst_corpus, removeWords, stopwords('english'))
+removeURL <- function(x) gsub('http[[:alnum:]]*', '', x)
+reinst_cleanset <- tm_map(reinst_cleanset, content_transformer(removeURL))
+inspect(reinst_cleanset[1:5])
+
+reinst_cleanset_df <- data.frame(reinst_cleanset)
+```
+
+
+We then inspected the top keywords for each of the corpuses for further cleaning.
+
+```{r, include=TRUE}
+#Plot of Keywords of Abortion Ban Overturned corpus after initial cleaning:
+ovt_tweets_plot1 <- ovt_cleanset_df %>% select(text) %>% 
+  unnest_tokens(word, text) %>%
+  count(word, sort = TRUE) %>%
+  top_n(25) %>%
+  mutate(text = reorder(word, n)) %>%
+  ggplot() +
+  geom_col(aes(x = text, y = n)) +
+  coord_flip() 
+ovt_tweets_plot1
+
+#Plot of Keywords of Abortion Ban Reinstated corpus after initial cleaning:
+reinst_tweets_plot1 <- reinst_cleanset_df %>% select(text) %>%
+  unnest_tokens(word, text) %>%
+  count(word, sort = TRUE) %>%
+  top_n(25) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot() +
+  geom_col(aes(x = word, y = n)) +
+  coord_flip() 
+reinst_tweets_plot1
+
+```
+
+Based on these plots, we found that more cleaning should be done prior to sentiment analysis.
+For example, additional stopwords need to be removed:
+just, now, around, week, day
+
+Also, we used stemming techniques to further clean the tweets for analyses.
+We also removed punctuation, symbols, and numbers (since all tweets will mention the 6-week abortion ban)
+
+
+Using stemming to clean up the data, we get
+```{r, include=TRUE}
+#Additional Cleaning with Stemming
+ovt_cleanset2 <- tm_map(ovt_cleanset, gsub,
+                   pattern = 'weeks',
+                   replacement = 'week')
+ovt_cleanset2 <- tm_map(ovt_cleanset2, removeWords, c('6', 'six',"week","just","now","around","day","sixweek"))
+ovt_cleanset2 <- tm_map(ovt_cleanset2, stemDocument)
+ovt_cleanset2 <- tm_map(ovt_cleanset2, stripWhitespace)
+inspect(ovt_cleanset2[1:5])
+
+ovt_cleanset_df <- data.frame(ovt_cleanset2)
+ovt_cleanset_df <- ovt_cleanset_df %>% dplyr::filter(!(text==""))
+
+#Additional Cleaning with Stemming
+reinst_cleanset2 <- tm_map(reinst_cleanset, gsub,
+                   pattern = 'weeks',
+                   replacement = 'week')
+reinst_cleanset2 <- tm_map(reinst_cleanset2, removeWords, c('6', 'six',"week","just","now","around","day","sixweek"))
+reinst_cleanset2 <- tm_map(reinst_cleanset2, stemDocument)
+reinst_cleanset2 <- tm_map(reinst_cleanset2, stripWhitespace)
+inspect(reinst_cleanset2[1:5])
+
+reinst_cleanset_df <- data.frame(reinst_cleanset2)
+reinst_cleanset_df <- reinst_cleanset_df %>% dplyr::filter(!(text==""))
+
+```
+```{r, include=TRUE}
+#Plot of Keywords of Abortion Ban Overturned corpus after initial cleaning:
+ovt_tweets_plot2 <- ovt_cleanset_df %>% select(text) %>% 
+  unnest_tokens(word, text) %>%
+  count(word, sort = TRUE) %>%
+  top_n(25) %>%
+  mutate(text = reorder(word, n)) %>%
+  ggplot() +
+  geom_col(aes(x = text, y = n)) +
+  coord_flip() 
+ovt_tweets_plot2
+
+#Plot of Keywords of Abortion Ban Reinstated corpus after initial cleaning:
+reinst_tweets_plot2 <- reinst_cleanset_df %>% select(text) %>%
+  unnest_tokens(word, text) %>%
+  count(word, sort = TRUE) %>%
+  top_n(25) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot() +
+  geom_col(aes(x = word, y = n)) +
+  coord_flip() 
+reinst_tweets_plot2
+```
+Comparing the two plots using the different cleaning methods side by side
+```{r, include=TRUE}
+library(patchwork)
+ovt_tweets_plot1 + ovt_tweets_plot2
+reinst_tweets_plot1 + reinst_tweets_plot2
+```
+
+Plot 1 represents cleaning up the data as described above while Plot 2 has formatted the words after the cleaning using stemming and removing additional stopwords.
+
+```{r, echo=FALSE, mess}
+##Sentiment Calculation
+library(SentimentAnalysis)
+
+#Sentiment of Abortion Law Overturned corpus:
+ovt_tweets_sentiments = analyzeSentiment(iconv(as.character(ovt_cleanset_df$text), to='UTF-8'))
+head(ovt_tweets_sentiments)
+#How to get average?
+
+#Sentiment of Abortion Law Reinstated corpus:
+reinst_tweets_sentiments = analyzeSentiment(iconv(as.character(reinst_cleanset_df$text), to='UTF-8'))
+head(reinst_tweets_sentiments)
+#How to get average?
+
+##Lexicoder
+library(quanteda)
+
+#Lexicoder Sentiment of Abortion Law Overturned corpus:
+tokenized=quanteda::tokens_lookup(quanteda::tokens(ovt_cleanset_df$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
+ovt_tweets_sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
+ovt_tweets_sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
+#ovt_tweets_sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
+
+#Lexicoder Sentiment of Abortion Law Reinstated corpus:
+tokenized=quanteda::tokens_lookup(quanteda::tokens(reinst_cleanset_df$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
+reinst_tweets_sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
+reinst_tweets_sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
+#reinst_tweets_sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
+
+##Vader
+#install.packages('vader')
+library(vader)
+#Vader Sentiment of Abortion Law Overturned corpus:
+ovt_tweets_vader_scores = vader_df(ovt_cleanset_df$text)
+ovt_tweets_sentiments$Vader = ovt_tweets_vader_scores$compound
+#Mean Sentiment:
+mean(ovt_tweets_sentiments$Vader, na.rm=TRUE)
+
+#Vader Sentiment of Abortion Law Reinstated corpus:
+reinst_tweets_vader_scores = vader_df(reinst_cleanset_df$text)
+reinst_tweets_sentiments$Vader = reinst_tweets_vader_scores$compound
+#Mean Sentiment:
+mean(reinst_tweets_sentiments$Vader, na.rm=TRUE)
+
+
+##Sentiment of Abortion Law Overturned vs. Reinstated
+library("RColorBrewer")
+par(mfrow=c(1,2))
+hist(ovt_tweets_sentiments$Vader, main='Sentiment of Abortion Law Overturned Tweets', xlab='Sentiment',
+     col = brewer.pal(n = 10, name = "RdBu"))
+
+hist(reinst_tweets_sentiments$Vader, main='Sentiment of Abortion Law Reinstated Tweets', 
+     xlab='Sentiment', col=brewer.pal(n = 10, name = "RdBu"))
+
+
+
+
+
+
+#Compare dictionaries
+#install.packages('GGally')
+library(GGally)
+#with(sentiments, ggpairs(data.frame(SentimentGI, SentimentHE, SentimentLM, 
+                                    #SentimentQDAP, LC, Vader)))
+
+```
+
+```{r, include=TRUE}
+tweetso <- iconv(ovt_cleanset_df$text)
+ovt <- get_nrc_sentiment(tweetso)
+head(ovt)
+
+tweetsr <- iconv(reinst_cleanset_df$text)
+reinst <- get_nrc_sentiment(tweetsr)
+head(reinst)
+
+par(mfrow=c(1,2))
+barplot(colSums(ovt),
+        horiz = TRUE,
+        las = 2,
+        col = rainbow(10),
+        ylab = 'Count',
+        main = 'Sentiment Scores Tweets')
+
+
+barplot(colSums(reinst),
+        horiz = TRUE,
+        las = 2,
+        col = rainbow(10),
+        ylab = 'Count',
+        main = 'Sentiment Scores Tweets')
+```
 
 
 ```{r, include=TRUE}
@@ -297,12 +523,12 @@ Plot 1 represents cleaning up the data as described above while plot2 has format
 library(SentimentAnalysis)
 
 #Sentiment of Abortion Law Overturned corpus:
-ovt_tweets_sentiments = analyzeSentiment(iconv(as.character(ovt_tweets_keywords$text), to='UTF-8'))
+ovt_tweets_sentiments = analyzeSentiment(iconv(as.character(df$text), to='UTF-8'))
 head(ovt_tweets_sentiments)
 #How to get average?
 
 #Sentiment of Abortion Law Reinstated corpus:
-reinst_tweets_sentiments = analyzeSentiment(iconv(as.character(reinst_tweets_toks1$text), to='UTF-8'))
+reinst_tweets_sentiments = analyzeSentiment(iconv(as.character(dfr$text), to='UTF-8'))
 head(reinst_tweets_sentiments)
 #How to get average?
 
@@ -310,13 +536,13 @@ head(reinst_tweets_sentiments)
 library(quanteda)
 
 #Lexicoder Sentiment of Abortion Law Overturned corpus:
-tokenized=quanteda::tokens_lookup(quanteda::tokens(ovt_tweets_toks1$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
+tokenized=quanteda::tokens_lookup(quanteda::tokens(df$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
 ovt_tweets_sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
 ovt_tweets_sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
-ovt_tweets_sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
+ovt_tweets_sentiments$LC = (sentiments$LCpos - sentiments$LCneg)/sentiments$WordCount
 
 #Lexicoder Sentiment of Abortion Law Reinstated corpus:
-tokenized=quanteda::tokens_lookup(quanteda::tokens(reinst_tweets_toks1$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
+tokenized=quanteda::tokens_lookup(quanteda::tokens(dfr$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
 reinst_tweets_sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
 reinst_tweets_sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
 reinst_tweets_sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
@@ -325,13 +551,13 @@ reinst_tweets_sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$Wor
 #install.packages('vader')
 library(vader)
 #Vader Sentiment of Abortion Law Overturned corpus:
-ovt_tweets_vader_scores = vader_df(ovt_tweets_toks1$text)
+ovt_tweets_vader_scores = vader_df(df$text)
 ovt_tweets_sentiments$Vader = ovt_tweets_vader_scores$compound
 #Mean Sentiment:
 mean(ovt_tweets_sentiments$Vader, na.rm=TRUE)
 
 #Vader Sentiment of Abortion Law Reinstated corpus:
-reinst_tweets_vader_scores = vader_df(reinst_tweets_toks1$text)
+reinst_tweets_vader_scores = vader_df(dfr$text)
 reinst_tweets_sentiments$Vader = reinst_tweets_vader_scores$compound
 #Mean Sentiment:
 mean(reinst_tweets_sentiments$Vader, na.rm=TRUE)
@@ -341,9 +567,6 @@ mean(reinst_tweets_sentiments$Vader, na.rm=TRUE)
 par(mfrow=c(1,2))
 hist(ovt_tweets_sentiments$Vader, main='Sentiment of Abortion Law Overturned Tweets', xlab='Sentiment')
 hist(reinst_tweets_sentiments$Vader, main='Sentiment of Abortion Law Reinstated Tweets', xlab='Sentiment')
-
-
-
 
 
 
