@@ -57,16 +57,15 @@ library(tm)
 ```
 ## Introduction
 In June of 2022, the Supreme Court issued its decision in Dobbs vs. Jackson Women’s Health, overturning Roe vs. Wade, eliminating the federal standard protecting the right to abortion. This sparked a major political and morality debate across the American population, where opinions and comments were shared via various social media platforms, including Twitter. According to a survey of U.S. adults conducted by Pew Research Center in the summer of 2022, a majority of the U.S. public disapproves of the Supreme Court's decision. Roughly 57% of adults disapprove of the court's decision, including 43% who strongly disapprove, while 41% approve, including 25% who strongly approve [@Blazina2022].The state of Georgia’s abortion law was among of the strictest in the country, banning abortion after the detection of fetal cardiac activity, at roughly six weeks. However, as of November 15th, 2022, a breaking news story reported that a Fulton County judge overturned Georgia’s six-week abortion ban [@BellwareRoubein2022]. Then, as of November 23rd, 2022, the state attorney general's office appealed the ruling to the state Supreme Court, allowing the six-week abortion ban to take effect once again [@Thanawala2022]. Given the country's divide on the issue of abortion and the back and forth of Georgia's legislation, we are interested in the emotional reactions of Twitter users' tweets on these changes of legislation. Our questions include:
+
 1) What are people saying about the changes in Georgia’s abortion law? 
 2) Are their reactions positive or negative?
 3) Do the sentiment of the tweets change as the legislative events change?
 
-This paper provides a sentiment analysis of Twitter users' tweets on the topic of abortion in the state of Georgia.
+We hypothesize that the direction of the sentiment of tweets will change in affect as the state of Georgia’s abortion law changes.This paper provides a demonstration of collecting and cleaning Twitter data and conducting a sentiment analysis of tweets discussing the topic of abortion in the state of Georgia using R. The GitHub repository of the project can be found at the following link: https://github.com/esempeles/SURV727-Project
 
 ## Data
-Two corpuses of tweets were collected to examine the sentiment of Twitter users regarding the Georgia abortion ban. Using the Twitter API, a total of 17,415 tweets were collected over two periods of time, after the abortion ban was overturned and after it was reinstated. The first corpus was collected for a span of 12 hours starting at 10:00PM EST on November 15, 2022. Given that the abortion ban was overturning on that specific day, this corpus of tweets captured Twitter users' reaction to the the overturning. This corpus included a total of 3,083 tweets. This corpus will be referred as the "Abortion Ban Overturned" corpus moving forward. The second corpus was collected for a span of 12 hours starting at 3:00PM EST on November 23, 2022. Internet disruptions were experienced while streaming this corpus of tweets, so this corpus was collected in three installments and combined into one corpus. This corpus of tweets captured Twitter users reactions after the news of the ban reinstatement. This corpus included a total of 14,332 tweets. This corpus will be referred to as the "Abortion Ban Reinstated" corpus moving forward.
-
-
+Two corpuses of tweets were collected to examine the sentiment of Twitter users’ comments regarding the Georgia abortion ban. Using the Twitter API and rtweet package in R, a total of 17,415 tweets were collected over two periods of time, after the abortion ban was overturned and after it was reinstated. Both corpuses were collected by using the keywords “georgia,” “ban,” and “abortion” in the query; all three words were required in all listening sessions. The first corpus was collected for a span of 12 hours starting at 10:00PM EST on November 15, 2022. Given that the abortion ban was overturned on that specific day, this corpus of tweets captured Twitter users' reactions to the the overturning of the six-week abortion ban. This corpus included a total of 3,083 tweets and will be referred to as the "Abortion Ban Overturned" corpus for the remainder of this paper. The second corpus was collected for a span of 12 hours starting at 3:00PM EST on November 23, 2022. Internet disruptions were experienced while streaming this corpus of tweets, so this corpus was collected in three installments and combined into one corpus. This corpus of tweets captured Twitter users’ reactions after the news of the abortion ban reinstatement. This corpus included a total of 14,332 tweets and will be referred to as the "Abortion Ban Reinstated" corpus moving forward.
 ```{r, eval=FALSE, include=FALSE}
 ## Data Gathering Process
 # First corpus of tweets (GA Abortion Law Overturned):
@@ -96,12 +95,7 @@ ban_tweets <- stream_tweets(
   file_name = "tweet4",
   parse = FALSE
 )
-
 ```
-
-
-
-
 ```{r, warning=FALSE, include=FALSE, results='hide'}
 # Parse from json file to get a usable dataframe
 ovt_tweets = parse_stream("tweet1")
@@ -116,9 +110,7 @@ reinst_tweets = rbind(tweets2, tweets3, tweets4)
 nrow(ovt_tweets)
 nrow(reinst_tweets)
 ```
-Next, we investigated the frequency of the tweets over time within each corpus. This would help us better understand the behavior of the Twitter users' as the topic of Georgia's abortion law was discussed. The two plots below show the number of tweets per minute for the Abortion Ban Overturned and Abortion Ban Reinstated corpuses.
-
-**Add language here describing the frequency of tweets per corpus according to the graphs.
+Next, we investigated the frequency of the tweets over time within each corpus. This would help us better understand the behavior of the Twitter users' as the topic of Georgia's abortion law was discussed on the social media platform. The two plots below show the number of tweets per minute for the Abortion Ban Overturned and Abortion Ban Reinstated corpuses.
 
 ```{r, include=FALSE }
 ovt_tweets$datetime <- ymd_hms(ovt_tweets$created_at)
@@ -127,7 +119,7 @@ ovtw <- ovt_tweets %>%
   geom_freqpoly(binwidth = 60)  # 60 seconds = 1 minute
 ovtw + labs(title = "Abortion Law Overturned Tweets collected over time")
 ```
-The first corpus of tweets were collected between 9pm and 10am on 15th-16th November 2022.
+As previously mentioned, the Abortion Ban Overturned corpus of tweets was collected between 10:00PM EST and 10:00AM EST on November 15th-16th, 2022. The plot shows a decrease in the frequency of tweets through the nighttime and early morning hours with an increase around 7:00-8:00AM EST. This was expected, as many Twitter users were assumed to not be online during the middle of the night.
 
 ```{r, include=FALSE}
 reinst_tweets$datetime <- ymd_hms(tweets$created_at)
@@ -136,11 +128,9 @@ retw <- reinst_tweets %>%
   geom_freqpoly(binwidth = 60)  # 60 seconds = 1 minute
 retw + labs(title = "Abortion Law Reinstated Tweets collected over time")
 ```
-The first corpus of tweets were collected between 2pm and 3am on 23rd-24th November 2022. 
+The Abortion Ban Reinstated tweets were collected between 2:00PM EST and 3:00AM EST on November 23rd-24th, 2022. As previously mentioned and shown in the dips within the plot, this corpus was collected in three separate installments due to internet access disruptions. The plot shows a sharp increase in the frequency of tweets around 2:30PM EST and then a steady decrease for the remainder of the streaming sessions.
 
-Next we did some initial cleaning. This includes removing websites, changing punctuation tags to just punctuation,unnecessary words and stopwords. 
-We did this for both of the corpuses.
-
+Prior to calculating the sentiment of the corpuses, initial cleaning steps were conducted that are common practices for textual analysis. All text was converted to lowercase and punctuation, numbers, stopwords, websites, and URLs were removed. Furthermore, the word “rt” was removed, as we did not think this word was needed in the sentiment calculation. These cleaning steps were conducted on both corpuses of tweets.
 ```{r, include=FALSE, results='hide'}
 ###INITIAL CLEANING###
 ##Initial Cleaning the Abortion Ban Overturned corpus:
@@ -177,11 +167,7 @@ inspect(reinst_cleanset[1:5])
 
 reinst_cleanset_df <- data.frame(reinst_cleanset)
 ```
-
-Results
-Data Exploration
-We then inspected the top keywords for each of the corpuses for further cleaning.
-
+We then inspected the top keywords for each of the corpuses to evaluate what the tweets were saying and if further textual cleaning was needed. The word “overturn” was the top fifth word of the Abortion Law Overturned corpus and was not included as a top keyword in the Abortion Law Reinstated corpus. Similarily, the word “reinstated” was the top fifth word of the Abortion Law Reinstated corpus and was not included in the Abortion Law Overturned corpus. With that, we assume that our querying technique and dates of streaming successfully collected tweets discussing the appropriate legislative action as it occurred. Based on these plots, we found that more cleaning needed to be executed prior to the sentiment analysis.The plots displayed large frequencies of additional unnecessary words that should be removed, as they would not assist in the sentiment calculation. These words included “just,” “now,” “around,” “week,” and “day.” Stemming was also implemented to reduce words to its stem that affixes to suffixes and prefixes or to the roots of words. Furthermore, extra spaces within the text were removed.
 ```{r, include=FALSE}
 #Plot of Keywords of Abortion Ban Overturned corpus after initial cleaning:
 ovt_tweets_plot1a <- ovt_cleanset_df %>% select(text) %>% 
@@ -216,16 +202,6 @@ plot.title = element_text(color="black", size=8, face="bold"),
 reinst_tweets_plot1
 
 ```
-
-Based on these plots, we found that more cleaning should be done prior to sentiment analysis.
-For example, additional stopwords need to be removed:
-just, now, around, week, day
-
-Also, we used stemming techniques to further clean the tweets for analyses.
-We also removed punctuation, symbols, and numbers (since all tweets will mention the 6-week abortion ban)
-
-
-Using stemming to clean up the data, we get
 ```{r, include=FALSE, warning=FALSE, results='hide'}
 #Additional Cleaning with Stemming
 ovt_cleanset2 <- tm_map(ovt_cleanset, gsub,
@@ -285,16 +261,16 @@ plot.title = element_text(color="black", size=8, face="bold"),
                           plot.subtitle = element_text(color="black", size=8))
 reinst_tweets_plot2
 ```
-Comparing the two plots using the different cleaning methods side by side
+The below plots show a comparison of the top keywords of both corpuses of tweets after each textual cleaning session. After inspection of the second plot for each corpus, we deemed the text of the tweets sufficient for sentiment analysis.
 ```{r, include=FALSE}
 library(patchwork)
 ovt_tweets_plot1 + ovt_tweets_plot2
 reinst_tweets_plot1 + reinst_tweets_plot2
 ```
+## Results
+The Vader and NRC word emotion dictionaries were used for the sentiment analysis. The Vader dictionary is a lexicon and rule-based sentiment analysis tool that is specifically designed to detect sentiments expressed in social media and shows the sentiments as either positive or negative. The NRC Emotion Lexicon is a list of English words and their associations with eight basic emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive). The annotations were manually done by crowdsourcing.
 
-Plot 1 represents cleaning up the data as described above while Plot 2 has formatted the words after the cleaning using stemming and removing additional stopwords.
-
-Analysis
+The below plots display the calculated sentiment score using the Vader dictionary against the number of words in each corpus. Using this dictionary, the sentiment for the both corpuses of tweets were mostly negative. The Abortion Ban Overturned corpus had a mean sentiment of -0.37 while the Abortion Ban Reinstated corpus had a mean sentiment of -0.36. 
 ```{r,  message=FALSE}
 ##Sentiment Calculation
 library(SentimentAnalysis)
@@ -322,15 +298,13 @@ reinst_tweets_sentiments$Vader = reinst_tweets_vader_scores$compound
 #Mean Sentiment:
 mean(reinst_tweets_sentiments$Vader, na.rm=TRUE)
 
-
 ##Sentiment of Abortion Law Overturned vs. Reinstated
 library("RColorBrewer")
 par(mfrow=c(1,2))
 hist(ovt_tweets_sentiments$Vader, main='Sentiment of Abortion Law Overturned Tweets',cex.main = 0.8,cex.axis = 0.75, cex.lab = 0.75,xlab='Sentiment', ylim = c(0,8000))
 hist(reinst_tweets_sentiments$Vader, main='Sentiment of Abortion Law Reinstated Tweets',cex.main = 0.8,cex.axis = 0.75,cex.lab = 0.75, xlab='Sentiment', ylim = c(0,8000))
-
 ```
-
+The second sentiment dictionary used in the analysis was the NRC Sentiment dictionary. The barplots below display the count of text that exhibit each of the eight emotions within the Abortion Law Overturned and Abortion Law Reinstated corpuses.
 ```{r, include=TRUE}
 library(syuzhet)
 tweetso <- iconv(ovt_cleanset_df$text)
@@ -361,7 +335,11 @@ barplot(colSums(reinst),
         xlab = 'Count',
         main = "Sentiment of Abortion Law Reinstated Tweets")
 ```
+Within the Abortion Law Overturned corpus, the emotion with the most amount of words was ‘negative’ with 7,000 occurrences, followed by the emotion ‘fear’ with 1,500 occurrences. The emotion with the least amount of words was ‘disgust.’
 
+Within the Abortion Law Reinstated corpus, the ‘negative’ emotion had the highest frequency across the text with over 30,000 occurrences. The emotion ‘anticipation’ was the second most occurring emotion with over 20,000 occurrences. The emotion with the least amount of words was ‘disgust.’
+
+Given that the number of tweets vary between both corpuses, we investigated differences in the described emotions as a proportion of the total number of meaningful words in the corpus. The barplots below show the NRC emotion calculations based on a proportionate scale and ordered from highest frequency to lowest frequency.
 ```{r, include=TRUE}
 par(mfrow=c(1,2))
 barplot(
@@ -387,30 +365,11 @@ barplot(
 )
 
 ```
-
-
-
-
-
-
-
-
-
- 
-## Results
-
-This section presents the main results.
-
-### Data exploration
-
-The results section may have a data exploration part, but in general the structure here depends on the specific project.
-
-
-### Analysis
-
-This section presents the main results, such as (for example) stats and graphs that show relationships, model results and/or clustering, PCA, etc.
-
+For the Abortion Ban Overturned corpus, words associated with the ‘negative’ emotion accounted for over 50% of meaningful words in the text, while ‘joy’ and ‘disgust’ accounted for about 1% each. The ‘negative’ emotion accounted for over 20% of the words in the Abortion Law Reinstated corpus, as well, 15% associated with the emotion ‘anticipation.’ The emotion ‘disgust’ was the least associated emotion, where only 1% of the words were described with this emotion. 
 
 ## Discussion
+Using the Vader and NRC Sentiment dictionaries, the sentiment analysis resulted in a negative sentiment for both the Abortion Law Overturned and Abortion Law Reinstated corpuses of tweets. This allows us to reject our hypothesis that the direction of the sentiment of the tweets would change in affect as the state of Georgia’s abortion legislation changed. This result may suggest that the topic of abortion was generally discussed in negative terms, whether Georgia’s six-week abortion ban was overturned or reinstated. The results from the NRC Sentiment dictionary were much more informative and interesting as it described the effect of the text using multiple emotional states in addition to the descriptions of positive and negative. We could see more clearly how the eight other emotions were used in the texts. Even though both corpuses were described as ‘negative’ using this dictionary, we did see a reduction in the emotion by 20% after the abortion ban was reinstated. Furthermore, we see higher rates of fear, anticipation, and anger after the abortion ban was reinstated compared to when the law was overturned. If researchers are interested in a more dimensional affective description of text, we recommend using the NRC Sentiment dictionary.
 
-This section summarizes the results and may briefly outline advantages and limitations of the work presented.
+We acknowledge potential issues in our data collection procedures using the Twitter API in R. For example, the Abortion Law Overturned corpus had a substantially lower number of tweets compared to the Abortion Law Reinstated corpus. This is most likely due to starting the stream of the Abortion Law Overturned tweets at 10:00PM EST, where most of the listening occurred during the middle of the night when Twitter users are assumed to be less active. Furthermore, for both corpuses, we streamed Twitter for just 12 hours. Longer listening sessions, for example multiple days versus hours, would have resulted in a larger amount of tweets per corpus, which could have added to the depth of our analysis. However, streaming Twitter for textual analysis requires constant connection to internet access, which may not be feasible for researchers at all times. In addition, the content of the tweets collected may have been different if the querying terms were more detailed. We used the same search words for both querying sessions, and streamed for the different corpuses based on the dates of the legislative events. The corpuses may have been more refined if we included “overturned” during the first streaming session and “reinstated” for the second streaming session.
+
+It is important to use caution when interpreting and generalizing results of a sentiment analysis using found data. Given the representation issues of using Twitter data, we cannot compare results of our sentiment analysis of individuals’ attitudes on the issue of abortion to an administered survey with a precise sampling plan, such as the Pew Research Center survey mentioned in the Introduction of the paper. However, we were able to monitor attitudes towards changes in Georgia’s legislation faster using found data than conducting a survey. Streaming Twitter data allowed us to see what people might be saying in real-time as the news of the Georgia abortion law quickly changed, posing as an advantage to using found data over traditional surveying methods.
