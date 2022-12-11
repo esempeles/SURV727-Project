@@ -80,13 +80,13 @@ ban_tweets <- stream_tweets(
 #Second corpus of tweets (GA Abortion Law Reinstated):
 ban_tweets <- stream_tweets(
   q = "georgia ban abortion",
-  timeout = 1800,
+  timeout = 4314,
   file_name = "tweet2",
   parse = FALSE
 )
 ban_tweets <- stream_tweets(
   q = "georgia ban abortion",
-  timeout = 43200,
+  timeout = 27672,
   file_name = "tweet3",
   parse = FALSE
 )
@@ -130,7 +130,7 @@ ovtw + labs(title = "Abortion Law Overturned Tweets collected over time")
 The first corpus of tweets were collected between 9pm and 10am on 15th-16th November 2022.
 
 ```{r, include=FALSE}
-reinst_tweets$datetime <- ymd_hms(reinst_tweets$created_at)
+reinst_tweets$datetime <- ymd_hms(tweets$created_at)
 retw <- reinst_tweets %>% 
   ggplot(aes(datetime)) + 
   geom_freqpoly(binwidth = 60)  # 60 seconds = 1 minute
