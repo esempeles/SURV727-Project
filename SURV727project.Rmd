@@ -141,7 +141,7 @@ The first corpus of tweets were collected between 2pm and 3am on 23rd-24th Novem
 Next we did some initial cleaning. This includes removing websites, changing punctuation tags to just punctuation,unnecessary words and stopwords. 
 We did this for both of the corpuses.
 
-```{r, include=FALSE}
+```{r, include=FALSE, results='hide'}
 ###INITIAL CLEANING###
 ##Initial Cleaning the Abortion Ban Overturned corpus:
 ovt_corpus <- iconv(ovt_tweets$text)
@@ -226,7 +226,7 @@ We also removed punctuation, symbols, and numbers (since all tweets will mention
 
 
 Using stemming to clean up the data, we get
-```{r, include=FALSE, warning=FALSE}
+```{r, include=FALSE, warning=FALSE, results='hide'}
 #Additional Cleaning with Stemming
 ovt_cleanset2 <- tm_map(ovt_cleanset, gsub,
                    pattern = 'weeks',
