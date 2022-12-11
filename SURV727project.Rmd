@@ -295,7 +295,7 @@ reinst_tweets_plot1 + reinst_tweets_plot2
 Plot 1 represents cleaning up the data as described above while Plot 2 has formatted the words after the cleaning using stemming and removing additional stopwords.
 
 Analysis
-```{r, echo=FALSE, message=FALSE}
+```{r,  message=FALSE}
 ##Sentiment Calculation
 library(SentimentAnalysis)
 
