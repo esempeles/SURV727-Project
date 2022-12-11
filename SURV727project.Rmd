@@ -1,7 +1,7 @@
 ---
 output:
-  word_document: default
   html_document: default
+  word_document: default
   pdf_document: default
 ---
 # SURV727-Project
@@ -67,12 +67,12 @@ This paper provides a sentiment analysis of Twitter users' tweets on the topic o
 Two corpuses of tweets were collected to examine the sentiment of Twitter users regarding the Georgia abortion ban. Using the Twitter API, a total of 17,415 tweets were collected over two periods of time, after the abortion ban was overturned and after it was reinstated. The first corpus was collected for a span of 12 hours starting at 10:00PM EST on November 15, 2022. Given that the abortion ban was overturning on that specific day, this corpus of tweets captured Twitter users' reaction to the the overturning. This corpus included a total of 3,083 tweets. This corpus will be referred as the "Abortion Ban Overturned" corpus moving forward. The second corpus was collected for a span of 12 hours starting at 3:00PM EST on November 23, 2022. Internet disruptions were experienced while streaming this corpus of tweets, so this corpus was collected in three installments and combined into one corpus. This corpus of tweets captured Twitter users reactions after the news of the ban reinstatement. This corpus included a total of 14,332 tweets. This corpus will be referred to as the "Abortion Ban Reinstated" corpus moving forward.
 
 
-```{r, eval=FALSE }
+```{r, eval=FALSE, include=FALSE}
 ## Data Gathering Process
 # First corpus of tweets (GA Abortion Law Overturned):
 ban_tweets <- stream_tweets(
   q = "georgia ban abortion",
-  timeout = 86400,
+  timeout = 43200,
   file_name = "tweet1",
   parse = FALSE
 )
@@ -102,7 +102,7 @@ ban_tweets <- stream_tweets(
 
 
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE, results='hide'}
 # Parse from json file to get a usable dataframe
 ovt_tweets = parse_stream("tweet1")
 tweets2 = parse_stream("tweet2") 
@@ -120,19 +120,21 @@ Next, we investigated the frequency of the tweets over time within each corpus. 
 
 **Add language here describing the frequency of tweets per corpus according to the graphs.
 
-```{r, include=TRUE }
+```{r, include=FALSE }
 ovt_tweets$datetime <- ymd_hms(ovt_tweets$created_at)
-ovt_tweets %>% 
+ovtw <- ovt_tweets %>% 
   ggplot(aes(datetime)) + 
   geom_freqpoly(binwidth = 60)  # 60 seconds = 1 minute
+ovtw + labs(title = "Abortion Law Overturned Tweets collected over time")
 ```
 The first corpus of tweets were collected between 9pm and 10am on 15th-16th November 2022.
 
-```{r, include=TRUE}
+```{r, include=FALSE}
 reinst_tweets$datetime <- ymd_hms(reinst_tweets$created_at)
-reinst_tweets %>% 
+retw <- reinst_tweets %>% 
   ggplot(aes(datetime)) + 
   geom_freqpoly(binwidth = 60)  # 60 seconds = 1 minute
+retw + labs(title = "Abortion Law Reinstated Tweets collected over time")
 ```
 The first corpus of tweets were collected between 2pm and 3am on 23rd-24th November 2022. 
 
@@ -176,30 +178,41 @@ inspect(reinst_cleanset[1:5])
 reinst_cleanset_df <- data.frame(reinst_cleanset)
 ```
 
-
+Results
+Data Exploration
 We then inspected the top keywords for each of the corpuses for further cleaning.
 
-```{r, include=TRUE}
+```{r, include=FALSE}
 #Plot of Keywords of Abortion Ban Overturned corpus after initial cleaning:
-ovt_tweets_plot1 <- ovt_cleanset_df %>% select(text) %>% 
+ovt_tweets_plot1a <- ovt_cleanset_df %>% select(text) %>% 
   unnest_tokens(word, text) %>%
   count(word, sort = TRUE) %>%
   top_n(25) %>%
   mutate(text = reorder(word, n)) %>%
   ggplot() +
   geom_col(aes(x = text, y = n)) +
+  labs(title="Abortion Ban Overturned Keywords",
+              subtitle = "After initial cleaning") +
   coord_flip() 
+ovt_tweets_plot1 <- ovt_tweets_plot1a + theme(
+plot.title = element_text(color="black", size=8, face="bold"),
+                          plot.subtitle = element_text(color="black", size=8))
 ovt_tweets_plot1
 
 #Plot of Keywords of Abortion Ban Reinstated corpus after initial cleaning:
-reinst_tweets_plot1 <- reinst_cleanset_df %>% select(text) %>%
+reinst_tweets_plot1a <- reinst_cleanset_df %>% select(text) %>%
   unnest_tokens(word, text) %>%
   count(word, sort = TRUE) %>%
   top_n(25) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot() +
   geom_col(aes(x = word, y = n)) +
+  labs(title="Abortion Ban Reinstated Keywords",
+              subtitle = "After initial cleaning") +
   coord_flip() 
+reinst_tweets_plot1 <- reinst_tweets_plot1a + theme(
+plot.title = element_text(color="black", size=8, face="bold"),
+                          plot.subtitle = element_text(color="black", size=8))
 reinst_tweets_plot1
 
 ```
@@ -213,7 +226,7 @@ We also removed punctuation, symbols, and numbers (since all tweets will mention
 
 
 Using stemming to clean up the data, we get
-```{r, include=TRUE}
+```{r, include=FALSE, warning=FALSE}
 #Additional Cleaning with Stemming
 ovt_cleanset2 <- tm_map(ovt_cleanset, gsub,
                    pattern = 'weeks',
@@ -239,31 +252,41 @@ reinst_cleanset_df <- data.frame(reinst_cleanset2)
 reinst_cleanset_df <- reinst_cleanset_df %>% dplyr::filter(!(text==""))
 
 ```
-```{r, include=TRUE}
-#Plot of Keywords of Abortion Ban Overturned corpus after initial cleaning:
-ovt_tweets_plot2 <- ovt_cleanset_df %>% select(text) %>% 
+```{r, include=FALSE}
+#Plot of Keywords of Abortion Ban Overturned corpus after final cleaning:
+ovt_tweets_plot2a <- ovt_cleanset_df %>% select(text) %>% 
   unnest_tokens(word, text) %>%
   count(word, sort = TRUE) %>%
   top_n(25) %>%
   mutate(text = reorder(word, n)) %>%
   ggplot() +
   geom_col(aes(x = text, y = n)) +
+  labs(title="Abortion Ban Overturned Keywords",
+              subtitle = "After final cleaning") +
   coord_flip() 
+ovt_tweets_plot2 <- ovt_tweets_plot2a + theme(
+plot.title = element_text(color="black", size=8, face="bold"),
+                          plot.subtitle = element_text(color="black", size=8))
 ovt_tweets_plot2
 
-#Plot of Keywords of Abortion Ban Reinstated corpus after initial cleaning:
-reinst_tweets_plot2 <- reinst_cleanset_df %>% select(text) %>%
+#Plot of Keywords of Abortion Ban Reinstated corpus after final cleaning:
+reinst_tweets_plot2b <- reinst_cleanset_df %>% select(text) %>%
   unnest_tokens(word, text) %>%
   count(word, sort = TRUE) %>%
   top_n(25) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot() +
   geom_col(aes(x = word, y = n)) +
+  labs(title="Abortion Ban Reinstated Keywords",
+              subtitle = "After final cleaning") +
   coord_flip() 
+reinst_tweets_plot2 <- reinst_tweets_plot2b + theme(
+plot.title = element_text(color="black", size=8, face="bold"),
+                          plot.subtitle = element_text(color="black", size=8))
 reinst_tweets_plot2
 ```
 Comparing the two plots using the different cleaning methods side by side
-```{r, include=TRUE}
+```{r, include=FALSE}
 library(patchwork)
 ovt_tweets_plot1 + ovt_tweets_plot2
 reinst_tweets_plot1 + reinst_tweets_plot2
@@ -271,7 +294,8 @@ reinst_tweets_plot1 + reinst_tweets_plot2
 
 Plot 1 represents cleaning up the data as described above while Plot 2 has formatted the words after the cleaning using stemming and removing additional stopwords.
 
-```{r, echo=FALSE, mess}
+Analysis
+```{r, echo=FALSE, message=FALSE}
 ##Sentiment Calculation
 library(SentimentAnalysis)
 
@@ -285,23 +309,6 @@ reinst_tweets_sentiments = analyzeSentiment(iconv(as.character(reinst_cleanset_d
 head(reinst_tweets_sentiments)
 #How to get average?
 
-##Lexicoder
-library(quanteda)
-
-#Lexicoder Sentiment of Abortion Law Overturned corpus:
-tokenized=quanteda::tokens_lookup(quanteda::tokens(ovt_cleanset_df$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
-ovt_tweets_sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
-ovt_tweets_sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
-#ovt_tweets_sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
-
-#Lexicoder Sentiment of Abortion Law Reinstated corpus:
-tokenized=quanteda::tokens_lookup(quanteda::tokens(reinst_cleanset_df$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
-reinst_tweets_sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
-reinst_tweets_sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
-#reinst_tweets_sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
-
-##Vader
-#install.packages('vader')
 library(vader)
 #Vader Sentiment of Abortion Law Overturned corpus:
 ovt_tweets_vader_scores = vader_df(ovt_cleanset_df$text)
@@ -319,26 +326,13 @@ mean(reinst_tweets_sentiments$Vader, na.rm=TRUE)
 ##Sentiment of Abortion Law Overturned vs. Reinstated
 library("RColorBrewer")
 par(mfrow=c(1,2))
-hist(ovt_tweets_sentiments$Vader, main='Sentiment of Abortion Law Overturned Tweets', xlab='Sentiment',
-     col = brewer.pal(n = 10, name = "RdBu"))
-
-hist(reinst_tweets_sentiments$Vader, main='Sentiment of Abortion Law Reinstated Tweets', 
-     xlab='Sentiment', col=brewer.pal(n = 10, name = "RdBu"))
-
-
-
-
-
-
-#Compare dictionaries
-#install.packages('GGally')
-library(GGally)
-#with(sentiments, ggpairs(data.frame(SentimentGI, SentimentHE, SentimentLM, 
-                                    #SentimentQDAP, LC, Vader)))
+hist(ovt_tweets_sentiments$Vader, main='Sentiment of Abortion Law Overturned Tweets',cex.main = 0.8,cex.axis = 0.75, cex.lab = 0.75,xlab='Sentiment', ylim = c(0,8000))
+hist(reinst_tweets_sentiments$Vader, main='Sentiment of Abortion Law Reinstated Tweets',cex.main = 0.8,cex.axis = 0.75,cex.lab = 0.75, xlab='Sentiment', ylim = c(0,8000))
 
 ```
 
 ```{r, include=TRUE}
+library(syuzhet)
 tweetso <- iconv(ovt_cleanset_df$text)
 ovt <- get_nrc_sentiment(tweetso)
 head(ovt)
@@ -350,325 +344,58 @@ head(reinst)
 par(mfrow=c(1,2))
 barplot(colSums(ovt),
         horiz = TRUE,
+        cex.names = 0.7,
+        cex.main = 0.8,
         las = 2,
         col = rainbow(10),
-        ylab = 'Count',
-        main = 'Sentiment Scores Tweets')
+        xlab = 'Count',
+        main = 'Sentiment of Abortion Law Overturned Tweets')
 
 
 barplot(colSums(reinst),
         horiz = TRUE,
+        cex.names = 0.7,
+        cex.main = 0.8,
         las = 2,
         col = rainbow(10),
-        ylab = 'Count',
-        main = 'Sentiment Scores Tweets')
-```
-
-
-```{r, include=TRUE}
-##Cleaning the Abortion Ban Overturned corpus:
-ovt_tweets_keywords <- ovt_tweets
-ovt_tweets_keywords$text <- gsub("http.*", "", ovt_tweets_keywords$text)
-ovt_tweets_keywords$text <- gsub("https.*", "", ovt_tweets_keywords$text)
-ovt_tweets_keywords$text <- gsub("&amp;", "&", ovt_tweets_keywords$text)
-
-
-ovt_tweets_keywords_clean <- ovt_tweets_keywords %>%
-  select(text) %>%
-  unnest_tokens(word, text)
-
-nrow(ovt_tweets_keywords_clean)
-
-stopwds <- get_stopwords("en")
-ovt_tweets_keywords_cleaner <- ovt_tweets_keywords_clean %>%
-  anti_join(stopwds)
-
-nrow(ovt_tweets_keywords_cleaner)
+        xlab = 'Count',
+        main = "Sentiment of Abortion Law Reinstated Tweets")
 ```
 
 ```{r, include=TRUE}
-##Cleaning the Abortion Ban Reinstated corpus:
-reinst_tweets_keywords <- reinst_tweets
-reinst_tweets_keywords$text <- gsub("http.*", "", reinst_tweets_keywords$text)
-reinst_tweets_keywords$text <- gsub("https.*", "", reinst_tweets_keywords$text)
-reinst_tweets_keywords$text <- gsub("&amp;", "&", reinst_tweets_keywords$text)
-
-
-reinst_tweets_keywords_clean <- reinst_tweets_keywords %>%
-  select(text) %>%
-  unnest_tokens(word, text)
-
-nrow(reinst_tweets_keywords_clean)
-
-stopwds <- get_stopwords("en")
-reinst_tweets_keywords_cleaner <- reinst_tweets_keywords_clean %>%
-  anti_join(stopwds)
-
-nrow(reinst_tweets_keywords_cleaner)
-```
-
-We then inspected the top keywords for each of the corpuses for further cleaning.
-```{r, include=TRUE}
-#Plot of Keywords before stemming for Abortion Ban Overturned corpus:
-ovt_tweets_plot1 <- ovt_tweets_keywords_cleaner %>%
-  count(word, sort = TRUE) %>%
-  top_n(15) %>%
-  mutate(word = reorder(word, n)) %>%
-  ggplot() +
-  geom_col(aes(x = word, y = n)) +
-  coord_flip() 
-ovt_tweets_plot1
-
-#Plot of Keywords before stemming for Abortion Ban Reinstated corpus:
-reinst_tweets_plot1 <- reinst_tweets_keywords_cleaner %>%
-  count(word, sort = TRUE) %>%
-  top_n(15) %>%
-  mutate(word = reorder(word, n)) %>%
-  ggplot() +
-  geom_col(aes(x = word, y = n)) +
-  coord_flip() 
-reinst_tweets_plot1
-
-```
-
-Based on these plots, we found that more cleaning should be done prior to sentiment analysis.
-For example, additional words/stopwords need to be removed:
-just, now, around, week, day, 6, six
-
-Also, we used stemming techniques to further clean the tweets for analyses.
-We also removed punctuation, symbols, and numbers (since all tweets will mention the 6-week abortion ban)
-
-
-Using stemming to clean up the data, we get
-```{r, include=TRUE}
-library(quanteda)
-library(lexicon)
-
-#Additional Cleaning for Abortion Ban Overturned corpus:
-ovt_tweets_keywords_cleaner$word <- gsub("just", "", ovt_tweets_keywords_cleaner$word)
-ovt_tweets_keywords_cleaner$word <- gsub("now", "", ovt_tweets_keywords_cleaner$word) 
-ovt_tweets_keywords_cleaner$word <- gsub("around", "", ovt_tweets_keywords_cleaner$word)
-ovt_tweets_keywords_cleaner$word <- gsub("week", "", ovt_tweets_keywords_cleaner$word) 
-ovt_tweets_keywords_cleaner$word <- gsub("day", "", ovt_tweets_keywords_cleaner$word)
-ovt_tweets_keywords_cleaner$word <- gsub("6", "", ovt_tweets_keywords_cleaner$word)
-ovt_tweets_keywords_cleaner$word <- gsub("RT", "", ovt_tweets_keywords_cleaner$word) 
-ovt_tweets_keywords_cleaner$word <- gsub("six", "", ovt_tweets_keywords_cleaner$word)
-
-
-ovt_tweets_keywords_clean_ <- ovt_tweets_keywords_cleaner %>% dplyr::filter(!(word==""))
-ovt_tweets_keywords_clean1 <- as.data.frame(ovt_tweets_keywords_clean_)
-
-toks <- corpus(ovt_tweets_keywords_clean1$word) %>%
-  tokens(remove_punct = TRUE, remove_numbers = FALSE, remove_symbols = TRUE) %>%  tokens_wordstem()
-
-
-ovt_tweets_toks1 <- data.frame(text = sapply(toks, as.character), stringsAsFactors = FALSE)
-ovt_tweets_plot2 <- ovt_tweets_toks1 %>%  mutate(word=text) %>%
-  anti_join(stopwds)%>%
- count(word, sort = TRUE) %>%
-  top_n(15) %>%
-  mutate(word = reorder(word, n)) %>%
-  ggplot() +
-  geom_col(aes(x = word, y = n)) +
-  coord_flip()
-ovt_tweets_plot2
-
-
-#Additional Cleaning for Abortion Ban Reinstated corpus:
-reinst_tweets_keywords_cleaner$word <- gsub("just", "", reinst_tweets_keywords_cleaner$word)
-reinst_tweets_keywords_cleaner$word <- gsub("now", "", reinst_tweets_keywords_cleaner$word)
-reinst_tweets_keywords_cleaner$word <- gsub("around", "", reinst_tweets_keywords_cleaner$word) 
-reinst_tweets_keywords_cleaner$word <- gsub("week", "", reinst_tweets_keywords_cleaner$word) 
-reinst_tweets_keywords_cleaner$word <- gsub("day", "", reinst_tweets_keywords_cleaner$word)
-reinst_tweets_keywords_cleaner$word <- gsub("6", "", reinst_tweets_keywords_cleaner$word) 
-reinst_tweets_keywords_cleaner$word <- gsub("RT", "", reinst_tweets_keywords_cleaner$word) 
-reinst_tweets_keywords_cleaner$word <- gsub("six", "", reinst_tweets_keywords_cleaner$word) 
- 
-
-#Removes empty observations
-reinst_tweets_keywords_clean_ <- reinst_tweets_keywords_cleaner %>% dplyr::filter(!(word==""))
-reinst_tweets_keywords_clean1 <- as.data.frame(reinst_tweets_keywords_clean_)
-
-toksw <-  corpus(reinst_tweets_keywords_clean1$word) %>%
-  tokens(remove_punct = TRUE, remove_numbers = FALSE, remove_symbols = TRUE) %>% 
-  tokens_wordstem()
-
-reinst_tweets_toks1 <- data.frame(text = sapply(toksw, as.character), stringsAsFactors = FALSE)
-reinst_tweets_plot2 <- reinst_tweets_toks1 %>%  mutate(word=text) %>%
-  anti_join(stopwds) %>%
-  count(word, sort = TRUE) %>%
-  top_n(15) %>%
-  mutate(word = reorder(word, n)) %>%
-  ggplot() +
-  geom_col(aes(x = word, y = n)) +
-  coord_flip()
-reinst_tweets_plot2
-
-```
-
-Comparing the two plots using the different cleaning methods side by side
-```{r, include=TRUE}
-library(patchwork)
-ovt_tweets_plot1 + ovt_tweets_plot2 + reinst_tweets_plot1 + reinst_tweets_plot2
-```
-
-
-
-
-Plot 1 represents cleaning up the data as described above while plot2 has formatted the words after the cleaning using stemming.
-
-
-```{r, echo=FALSE, mess}
-##Sentiment Calculation
-library(SentimentAnalysis)
-
-#Sentiment of Abortion Law Overturned corpus:
-ovt_tweets_sentiments = analyzeSentiment(iconv(as.character(df$text), to='UTF-8'))
-head(ovt_tweets_sentiments)
-#How to get average?
-
-#Sentiment of Abortion Law Reinstated corpus:
-reinst_tweets_sentiments = analyzeSentiment(iconv(as.character(dfr$text), to='UTF-8'))
-head(reinst_tweets_sentiments)
-#How to get average?
-
-##Lexicoder
-library(quanteda)
-
-#Lexicoder Sentiment of Abortion Law Overturned corpus:
-tokenized=quanteda::tokens_lookup(quanteda::tokens(df$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
-ovt_tweets_sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
-ovt_tweets_sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
-ovt_tweets_sentiments$LC = (sentiments$LCpos - sentiments$LCneg)/sentiments$WordCount
-
-#Lexicoder Sentiment of Abortion Law Reinstated corpus:
-tokenized=quanteda::tokens_lookup(quanteda::tokens(dfr$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
-reinst_tweets_sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
-reinst_tweets_sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
-reinst_tweets_sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
-
-##Vader
-#install.packages('vader')
-library(vader)
-#Vader Sentiment of Abortion Law Overturned corpus:
-ovt_tweets_vader_scores = vader_df(df$text)
-ovt_tweets_sentiments$Vader = ovt_tweets_vader_scores$compound
-#Mean Sentiment:
-mean(ovt_tweets_sentiments$Vader, na.rm=TRUE)
-
-#Vader Sentiment of Abortion Law Reinstated corpus:
-reinst_tweets_vader_scores = vader_df(dfr$text)
-reinst_tweets_sentiments$Vader = reinst_tweets_vader_scores$compound
-#Mean Sentiment:
-mean(reinst_tweets_sentiments$Vader, na.rm=TRUE)
-
-
-##Sentiment of Abortion Law Overturned vs. Reinstated
 par(mfrow=c(1,2))
-hist(ovt_tweets_sentiments$Vader, main='Sentiment of Abortion Law Overturned Tweets', xlab='Sentiment')
-hist(reinst_tweets_sentiments$Vader, main='Sentiment of Abortion Law Reinstated Tweets', xlab='Sentiment')
+barplot(
+  sort(colSums(prop.table(ovt[, 1:10]))), 
+  horiz = TRUE, 
+  cex.names = 0.7,
+  cex.main = 0.8,
+  las = 2, 
+  col = rainbow(10),
+  xlim = c(0, 0.6),
+  main = "Emotions in Abortion Law Overturned tweets", xlab="Percentage"
+)
 
-
-
-#Compare dictionaries
-#install.packages('GGally')
-library(GGally)
-with(sentiments, ggpairs(data.frame(SentimentGI, SentimentHE, SentimentLM, 
-                                    SentimentQDAP, LC, Vader)))
-
-```
-
-
-
-```{r, echo=FALSE, mess}
-#Sentiment Calculation
-library(SentimentAnalysis)
-
-sentiments = analyzeSentiment(iconv(as.character(keywords$text), to='UTF-8'))
-head(sentiments)
-
-#Lexicoder
-library(quanteda)
-tokenized=quanteda::tokens_lookup(quanteda::tokens(keywords$text), dictionary=data_dictionary_LSD2015, exclusive=FALSE)
-sentiments$LCpos = sapply(tokenized, function(x) sum(x=='POSITIVE') - sum(x=='NEG_POSITIVE') + sum(x=='NEG_NEGATIVE'))
-sentiments$LCneg = sapply(tokenized, function(x) sum(x=='NEGATIVE') - sum(x=='NEG_NEGATIVE') + sum(x=='NEG_POSITIVE'))
-sentiments$LC = (sentiments$LCpos-sentiments$LCneg)/sentiments$WordCount
-
-#Vader
-#install.packages('vader')
-library(vader)
-vader_scores = vader_df(keywords$text)
-sentiments$Vader = vader_scores$compound
-
-#Compare dictionaries
-#install.packages('GGally')
-library(GGally)
-with(sentiments, ggpairs(data.frame(SentimentGI, SentimentHE, SentimentLM, 
-                                    SentimentQDAP, LC, Vader)))
-
-```
-
-The second installment will be merged into one json file
-```{r, echo = FALSE}
-keywords2 <- parse_stream("tweet2")
-keywords3 <- parse_stream("tweet3")
-keywords4 <- parse_stream("tweet4")
-tweet_2 <- rbind(keywords2,keywords3,keywords4)
+barplot(
+  sort(colSums(prop.table(reinst[, 1:10]))), 
+  horiz = TRUE, 
+  cex.names = 0.7, 
+  cex.main = 0.8,
+  las = 2, 
+  col = rainbow(10),
+  xlim = c(0, 0.6),
+  main = "Emotions in Abortion Law Reinstated tweets", xlab="Percentage"
+)
 
 ```
 
 
-```{r, include=TRUE}
-tweet_2$text <- gsub("http.*", "", tweet_2$text)
-tweet_2$text <- gsub("https.*", "", tweet_2$text)
-tweet_2$text <- gsub("&amp;", "&", tweet_2$text)
-tweet_2$text <- gsub("RT", "", tweet_2$text)
-tweet_2$text <- gsub("6", "six", tweet_2$text)
 
-keywords_clean <- tweet_2 %>%
-  select(text) %>%
-  unnest_tokens(word, text)
-nrow(keywords_clean)
 
-stopwds <- get_stopwords("en")
-keywords_cleaner <- keywords_clean %>%
-  anti_join(stopwds)
-nrow(keywords_cleaner)
 
-plot3 <- keywords_cleaner %>%
-  count(word, sort = TRUE) %>%
-  top_n(30) %>%
-  mutate(word = reorder(word, n)) %>%
-  ggplot() +
-  geom_col(aes(x = word, y = n)) +
-  coord_flip() 
-plot3
-```
 
-```{r, include=TRUE}
-library(quanteda)
-library(lexicon)
 
-keywords_clean1 <- as.data.frame(keywords_clean)
-toks <-  corpus(keywords_clean1$word) %>%
-  tokens(remove_punct = TRUE, remove_numbers = FALSE, remove_symbols = TRUE) %>% 
-  tokens_wordstem()
 
-toks1 <- data.frame(text = sapply(toks, as.character), stringsAsFactors = FALSE)
-plot4 <- toks1 %>%  mutate(word=text) %>%
-  anti_join(stopwds) %>%
-  count(word, sort = TRUE) %>%
-  top_n(30) %>%
-  mutate(word = reorder(word, n)) %>%
-  ggplot() +
-  geom_col(aes(x = word, y = n)) +
-  coord_flip()
-plot4
-```
-Comparing all four top 15 words
-```{r, include=TRUE}
- plot3 +plot4
-```
+
  
 ## Results
 
@@ -678,29 +405,11 @@ This section presents the main results.
 
 The results section may have a data exploration part, but in general the structure here depends on the specific project.
 
-```{r}
-# What happens here depends on the specific project
-```
-
-```{r}
-# What happens here depends on the specific project
-```
 
 ### Analysis
 
 This section presents the main results, such as (for example) stats and graphs that show relationships, model results and/or clustering, PCA, etc.
 
-```{r}
-# What happens here depends on the specific project
-```
-
-```{r}
-# What happens here depends on the specific project
-```
-
-```{r}
-# What happens here depends on the specific project
-```
 
 ## Discussion
 
