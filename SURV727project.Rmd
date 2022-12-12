@@ -3,13 +3,13 @@ title: "Sentiment Analysis of Tweets on Georgia Abortion Law"
 author: "Akipu Ehoche and Ellena Sempeles"
 date: "`r Sys.Date()`"
 output:
-  pdf_document:
-    toc: yes
-  word_document:
-    toc: yes
   html_document:
     toc: yes
     df_print: kable
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
 subtitle: SURV727 Term Paper
 ---
 
@@ -230,13 +230,8 @@ plot.title = element_text(color="black", size=8, face="bold"),
                           plot.subtitle = element_text(color="black", size=8))
 reinst_tweets_plot2
 ```
-<<<<<<< HEAD
-The below plots show a comparison of the top keywords of both corpuses of tweets after each textual cleaning session. After inspection of the second plot for each corpus, we deemed the text of the tweets sufficient for sentiment analysis.
-```{r, echo=FALSE, warning=FALSE}
-=======
 Figure 3 shows a comparison of the top keywords of both corpuses of tweets after each textual cleaning session. After inspection of the second plot for each corpus, we deemed the text of the tweets sufficient for sentiment analysis.
-```{r, include=FALSE}
->>>>>>> 1cbf2761624c4686ce2a84d3f78f239a1478961d
+```{r, echo=FALSE, warning=FALSE}
 library(patchwork)
 ovt_tweets_plot1 + ovt_tweets_plot2
 reinst_tweets_plot1 + reinst_tweets_plot2
@@ -247,13 +242,8 @@ Figure 3: comparison of the top keywords of both corpuses of tweets after each t
 ## Results
 The Vader and NRC word emotion dictionaries were used for the sentiment analysis. The Vader dictionary is a lexicon and rule-based sentiment analysis tool that is specifically designed to detect sentiments expressed in social media and shows the sentiments as either positive or negative. The NRC Emotion Lexicon is a list of English words and their associations with eight basic emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive). The annotations were manually done by crowdsourcing.
 
-<<<<<<< HEAD
-The below plots display the calculated sentiment score using the Vader dictionary against the number of words in each corpus. Using this dictionary, the sentiment for the both corpuses of tweets were mostly negative. The Abortion Ban Overturned corpus had a mean sentiment of -0.37 while the Abortion Ban Reinstated corpus had a mean sentiment of -0.36. 
-```{r,  message=FALSE, warning=FALSE, include=FALSE}
-=======
 Figure 4 displays the calculated sentiment score using the Vader dictionary against the number of words in each corpus. Using this dictionary, the sentiment for the both corpuses of tweets were mostly negative. The Abortion Ban Overturned corpus had a mean sentiment of -0.37 while the Abortion Ban Reinstated corpus had a mean sentiment of -0.36. 
-```{r,  message=FALSE}
->>>>>>> 1cbf2761624c4686ce2a84d3f78f239a1478961d
+```{r,  message=FALSE, warning=FALSE, include=FALSE}
 ##Sentiment Calculation
 library(SentimentAnalysis)
 
@@ -284,14 +274,9 @@ par(mfrow=c(1,2))
 hist(ovt_tweets_sentiments$Vader, main='Sentiment of Abortion Law Overturned Tweets',cex.main = 0.8,cex.axis = 0.75, cex.lab = 0.75,xlab='Sentiment', ylim = c(0,8000))
 hist(reinst_tweets_sentiments$Vader, main='Sentiment of Abortion Law Reinstated Tweets',cex.main = 0.8,cex.axis = 0.75,cex.lab = 0.75, xlab='Sentiment', ylim = c(0,8000))
 ```
-<<<<<<< HEAD
 
-The second sentiment dictionary used in the analysis was the NRC Sentiment dictionary. The barplots below display the count of text that exhibit each of the eight emotions within the Abortion Law Overturned and Abortion Law Reinstated corpuses.
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Figure 5: Frequency of Sentiments/Emotions by corpuses"}
-=======
 The second sentiment dictionary used in the analysis was the NRC Sentiment dictionary. Figure 5 displays the count of text that exhibit each of the eight emotions within the Abortion Law Overturned and Abortion Law Reinstated corpuses.
-```{r, include=TRUE}
->>>>>>> 1cbf2761624c4686ce2a84d3f78f239a1478961d
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Figure 5: Frequency of Sentiments/Emotions by corpuses"}
 library(syuzhet)
 tweetso <- iconv(ovt_cleanset_df$text)
 ovt <- get_nrc_sentiment(tweetso)
@@ -326,13 +311,8 @@ Within the Abortion Law Overturned corpus, the emotion with the most amount of w
 
 Within the Abortion Law Reinstated corpus, the ‘negative’ emotion had the highest frequency across the text with over 30,000 occurrences. The emotion ‘anticipation’ was the second most occurring emotion with over 20,000 occurrences. The emotion with the least amount of words was ‘disgust.’
 
-<<<<<<< HEAD
-Given that the number of tweets vary between both corpuses, we investigated differences in the described emotions as a proportion of the total number of meaningful words in the corpus. The barplots below show the NRC emotion calculations based on a proportionate scale and ordered from highest frequency to lowest frequency.
-```{r, echo=FALSE, fig.cap="Figure 6: Percentage of Sentiments/Emotions by corpuses"}
-=======
 Given that the number of tweets vary between both corpuses, we investigated differences in the described emotions as a proportion of the total number of meaningful words in the corpus. Figure 6 displays the NRC emotion calculations based on a proportionate scale and ordered from highest frequency to lowest frequency.
-```{r, include=TRUE}
->>>>>>> 1cbf2761624c4686ce2a84d3f78f239a1478961d
+```{r, echo=FALSE, fig.cap="Figure 6: Percentage of Sentiments/Emotions by corpuses"}
 par(mfrow=c(1,2))
 barplot(
   sort(colSums(prop.table(ovt[, 1:10]))), 
