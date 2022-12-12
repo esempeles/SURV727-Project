@@ -1,49 +1,16 @@
 ---
-output:
-  html_document: default
-  word_document: default
-  pdf_document: default
----
-# SURV727-Project
----
 title: "Sentiment Analysis of Tweets on Georgia Abortion Law"
-subtitle: "SURV727 Term Paper"
 author: "Akipu Ehoche and Ellena Sempeles"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
     toc: yes
+  word_document:
+    toc: yes
+  html_document:
+    toc: yes
     df_print: kable
- references:
-- id: Blazina2022
-  title: Key facts about the abortion debate in America
-  author:
-  - family: Blazina
-    given: C.
-  container-title: Pew Research
-  type: article-online
-  issued:
-    year: 2022
-- id: BellwareRoubein2022
-  title: Judge overturns Georgia’s six-week abortion ban
-  author:
-  - family: Bellware
-    given: K.
-  - family: Roubein
-    given: R.
-  type: article-online
-  container-title: The Washington Post
-  issued:
-    year: 2022
-- id: Thanawala2022
-  title: Georgia Supreme Court reinstates ban on abortions after 6 weeks of pregnancy
-  author:
-  - family: Thanawala
-    given: S.
-  type: article-online
-  container-title: PBS
-  issued:
-    year: 2022
+subtitle: SURV727 Term Paper
 ---
 
 ```{r, include = FALSE}
@@ -112,22 +79,24 @@ nrow(reinst_tweets)
 ```
 Next, we investigated the frequency of the tweets over time within each corpus. This would help us better understand the behavior of the Twitter users' as the topic of Georgia's abortion law was discussed on the social media platform. The two plots below show the number of tweets per minute for the Abortion Ban Overturned and Abortion Ban Reinstated corpuses.
 
-```{r, include=FALSE }
+```{r, echo=FALSE, fig.cap="Figure 1: Abortion Law Overturned Tweets collected over time"}
 ovt_tweets$datetime <- ymd_hms(ovt_tweets$created_at)
 ovtw <- ovt_tweets %>% 
   ggplot(aes(datetime)) + 
   geom_freqpoly(binwidth = 60)  # 60 seconds = 1 minute
-ovtw + labs(title = "Abortion Law Overturned Tweets collected over time")
+ovtw 
 ```
+
 As previously mentioned, the Abortion Ban Overturned corpus of tweets was collected between 10:00PM EST and 10:00AM EST on November 15th-16th, 2022. The plot shows a decrease in the frequency of tweets through the nighttime and early morning hours with an increase around 7:00-8:00AM EST. This was expected, as many Twitter users were assumed to not be online during the middle of the night.
 
-```{r, include=FALSE}
-reinst_tweets$datetime <- ymd_hms(tweets$created_at)
+```{r, echo=FALSE, fig.cap="Figure 2: Abortion Law Reinstated Tweets collected over time"}
+reinst_tweets$datetime <- ymd_hms(reinst_tweets$created_at)
 retw <- reinst_tweets %>% 
   ggplot(aes(datetime)) + 
   geom_freqpoly(binwidth = 60)  # 60 seconds = 1 minute
-retw + labs(title = "Abortion Law Reinstated Tweets collected over time")
+retw 
 ```
+
 The Abortion Ban Reinstated tweets were collected between 2:00PM EST and 3:00AM EST on November 23rd-24th, 2022. As previously mentioned and shown in the dips within the plot, this corpus was collected in three separate installments due to internet access disruptions. The plot shows a sharp increase in the frequency of tweets around 2:30PM EST and then a steady decrease for the remainder of the streaming sessions.
 
 Prior to calculating the sentiment of the corpuses, initial cleaning steps were conducted that are common practices for textual analysis. All text was converted to lowercase and punctuation, numbers, stopwords, websites, and URLs were removed. Furthermore, the word “rt” was removed, as we did not think this word was needed in the sentiment calculation. These cleaning steps were conducted on both corpuses of tweets.
@@ -262,58 +231,60 @@ plot.title = element_text(color="black", size=8, face="bold"),
 reinst_tweets_plot2
 ```
 The below plots show a comparison of the top keywords of both corpuses of tweets after each textual cleaning session. After inspection of the second plot for each corpus, we deemed the text of the tweets sufficient for sentiment analysis.
-```{r, include=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 library(patchwork)
 ovt_tweets_plot1 + ovt_tweets_plot2
 reinst_tweets_plot1 + reinst_tweets_plot2
 ```
+
+Figure 3: comparison of the top keywords of both corpuses of tweets after each textual cleaning session
+
 ## Results
 The Vader and NRC word emotion dictionaries were used for the sentiment analysis. The Vader dictionary is a lexicon and rule-based sentiment analysis tool that is specifically designed to detect sentiments expressed in social media and shows the sentiments as either positive or negative. The NRC Emotion Lexicon is a list of English words and their associations with eight basic emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive). The annotations were manually done by crowdsourcing.
 
 The below plots display the calculated sentiment score using the Vader dictionary against the number of words in each corpus. Using this dictionary, the sentiment for the both corpuses of tweets were mostly negative. The Abortion Ban Overturned corpus had a mean sentiment of -0.37 while the Abortion Ban Reinstated corpus had a mean sentiment of -0.36. 
-```{r,  message=FALSE}
+```{r,  message=FALSE, warning=FALSE, include=FALSE}
 ##Sentiment Calculation
 library(SentimentAnalysis)
 
 #Sentiment of Abortion Law Overturned corpus:
 ovt_tweets_sentiments = analyzeSentiment(iconv(as.character(ovt_cleanset_df$text), to='UTF-8'))
-head(ovt_tweets_sentiments)
-#How to get average?
+#head(ovt_tweets_sentiments)
 
 #Sentiment of Abortion Law Reinstated corpus:
 reinst_tweets_sentiments = analyzeSentiment(iconv(as.character(reinst_cleanset_df$text), to='UTF-8'))
-head(reinst_tweets_sentiments)
-#How to get average?
+#head(reinst_tweets_sentiments)
 
 library(vader)
 #Vader Sentiment of Abortion Law Overturned corpus:
 ovt_tweets_vader_scores = vader_df(ovt_cleanset_df$text)
 ovt_tweets_sentiments$Vader = ovt_tweets_vader_scores$compound
 #Mean Sentiment:
-mean(ovt_tweets_sentiments$Vader, na.rm=TRUE)
+#mean(ovt_tweets_sentiments$Vader, na.rm=TRUE)
 
 #Vader Sentiment of Abortion Law Reinstated corpus:
 reinst_tweets_vader_scores = vader_df(reinst_cleanset_df$text)
 reinst_tweets_sentiments$Vader = reinst_tweets_vader_scores$compound
 #Mean Sentiment:
-mean(reinst_tweets_sentiments$Vader, na.rm=TRUE)
-
+#mean(reinst_tweets_sentiments$Vader, na.rm=TRUE)
+```
+```{r,echo=FALSE, warning=FALSE, message=FALSE,fig.cap="Figure 4: Sentiment scores using the Vader dictionary by corpuses"}
 ##Sentiment of Abortion Law Overturned vs. Reinstated
-library("RColorBrewer")
 par(mfrow=c(1,2))
 hist(ovt_tweets_sentiments$Vader, main='Sentiment of Abortion Law Overturned Tweets',cex.main = 0.8,cex.axis = 0.75, cex.lab = 0.75,xlab='Sentiment', ylim = c(0,8000))
 hist(reinst_tweets_sentiments$Vader, main='Sentiment of Abortion Law Reinstated Tweets',cex.main = 0.8,cex.axis = 0.75,cex.lab = 0.75, xlab='Sentiment', ylim = c(0,8000))
 ```
+
 The second sentiment dictionary used in the analysis was the NRC Sentiment dictionary. The barplots below display the count of text that exhibit each of the eight emotions within the Abortion Law Overturned and Abortion Law Reinstated corpuses.
-```{r, include=TRUE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Figure 5: Frequency of Sentiments/Emotions by corpuses"}
 library(syuzhet)
 tweetso <- iconv(ovt_cleanset_df$text)
 ovt <- get_nrc_sentiment(tweetso)
-head(ovt)
+#head(ovt)
 
 tweetsr <- iconv(reinst_cleanset_df$text)
 reinst <- get_nrc_sentiment(tweetsr)
-head(reinst)
+#head(reinst)
 
 par(mfrow=c(1,2))
 barplot(colSums(ovt),
@@ -335,12 +306,13 @@ barplot(colSums(reinst),
         xlab = 'Count',
         main = "Sentiment of Abortion Law Reinstated Tweets")
 ```
+
 Within the Abortion Law Overturned corpus, the emotion with the most amount of words was ‘negative’ with 7,000 occurrences, followed by the emotion ‘fear’ with 1,500 occurrences. The emotion with the least amount of words was ‘disgust.’
 
 Within the Abortion Law Reinstated corpus, the ‘negative’ emotion had the highest frequency across the text with over 30,000 occurrences. The emotion ‘anticipation’ was the second most occurring emotion with over 20,000 occurrences. The emotion with the least amount of words was ‘disgust.’
 
 Given that the number of tweets vary between both corpuses, we investigated differences in the described emotions as a proportion of the total number of meaningful words in the corpus. The barplots below show the NRC emotion calculations based on a proportionate scale and ordered from highest frequency to lowest frequency.
-```{r, include=TRUE}
+```{r, echo=FALSE, fig.cap="Figure 6: Percentage of Sentiments/Emotions by corpuses"}
 par(mfrow=c(1,2))
 barplot(
   sort(colSums(prop.table(ovt[, 1:10]))), 
@@ -365,6 +337,7 @@ barplot(
 )
 
 ```
+
 For the Abortion Ban Overturned corpus, words associated with the ‘negative’ emotion accounted for over 50% of meaningful words in the text, while ‘joy’ and ‘disgust’ accounted for about 1% each. The ‘negative’ emotion accounted for over 20% of the words in the Abortion Law Reinstated corpus, as well, 15% associated with the emotion ‘anticipation.’ The emotion ‘disgust’ was the least associated emotion, where only 1% of the words were described with this emotion. 
 
 ## Discussion
